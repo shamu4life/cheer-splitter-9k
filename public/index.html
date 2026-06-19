@@ -17,6 +17,18 @@
     --mono:ui-monospace,"Cascadia Code",Menlo,Consolas,monospace;
     --ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   }
+  /* Light palette: applied automatically when the OS prefers light (and the user
+     hasn't picked a theme), or explicitly via data-theme="light" on <html>. */
+  @media (prefers-color-scheme:light){
+    :root:not([data-theme]){
+      --bg:#f5f6f8; --panel:#ffffff; --panel2:#eceef1; --border:#d7dadf;
+      --text:#17171b; --muted:#54545f; --dim:#6c6c77; --accent-lite:#6d28d9;
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#f5f6f8; --panel:#ffffff; --panel2:#eceef1; --border:#d7dadf;
+    --text:#17171b; --muted:#54545f; --dim:#6c6c77; --accent-lite:#6d28d9;
+  }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);font-family:var(--ui);line-height:1.5;-webkit-text-size-adjust:100%}
   .wrap{max-width:780px;margin:0 auto;padding:20px 16px 56px}
@@ -24,6 +36,12 @@
   h1{font-size:20px;margin:0 0 2px;letter-spacing:-.01em;display:flex;align-items:center;gap:9px}
   .sub{color:var(--muted);font-size:13px;margin:0 0 20px}
   .mark{width:13px;height:13px;border-radius:3px;transform:rotate(45deg);background:linear-gradient(135deg,var(--accent-lite),var(--accent));box-shadow:0 0 8px rgba(145,70,255,.55);flex:0 0 auto;display:inline-block}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 2px}
+  .topbar h1{margin:0}
+  .themebtn{flex:0 0 auto;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;padding:0;border:1px solid var(--border);background:var(--panel2);color:var(--muted);border-radius:9px;cursor:pointer}
+  .themebtn:hover{color:var(--text);border-color:var(--accent)}
+  .themebtn svg{display:block}
 
   label{display:block;font-size:11px;color:var(--muted);margin:0 0 6px;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
   textarea,input[type=text],input[type=number]{
@@ -76,7 +94,7 @@
   .pill{font-size:11px;font-family:var(--mono);color:var(--accent-lite);border:1px solid rgba(145,70,255,.4);background:rgba(145,70,255,.12);border-radius:999px;padding:1px 8px}
   .stats{margin-left:auto;display:flex;gap:12px;color:var(--muted);font-size:12px;font-family:var(--mono)}
   .stats .full{color:var(--text)}
-  .meter{height:4px;background:#2a2a2e;border-radius:2px;overflow:hidden;margin-bottom:11px}
+  .meter{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:11px}
   .meter > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-lite));border-radius:2px;transition:width .3s}
   .msg{font-family:var(--mono);font-size:14px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
   .copy{margin-top:11px;width:100%;border:1px solid var(--border);background:var(--panel2);color:var(--text);border-radius:8px;padding:9px;font-size:14px;font-weight:600;cursor:pointer;transition:border-color .15s,background .15s}
@@ -103,7 +121,10 @@
 </head>
 <body>
 <div class="wrap">
-  <h1><span class="mark"></span> Voice Chunker</h1>
+  <div class="topbar">
+    <h1><span class="mark"></span> Voice Chunker</h1>
+    <button type="button" class="themebtn" id="theme" aria-label="Toggle theme"></button>
+  </div>
   <p class="sub">Tag dialogue by speaker, run find/replace, and split it into size-capped chunks.</p>
 
   <div class="modebar" role="radiogroup" aria-label="Input type">
@@ -420,9 +441,41 @@
     run();
   });
 
+  /* ---- theme: follow the OS by default, with a remembered manual override ---- */
+  var SUN  = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>';
+  var MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>';
+  var mql = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  function readPref(){ try{ return localStorage.getItem('vc-theme'); }catch(e){ return null; } }
+  function writePref(v){ try{ localStorage.setItem('vc-theme', v); }catch(e){} }
+  function systemTheme(){ return (mql && mql.matches) ? 'dark' : 'light'; }
+  function applyTheme(){
+    var pref = readPref();
+    var explicit = (pref === 'light' || pref === 'dark');
+    var eff = explicit ? pref : systemTheme();
+    // Only pin an attribute for an explicit choice; otherwise let CSS follow the OS live.
+    if(explicit) document.documentElement.setAttribute('data-theme', pref);
+    else document.documentElement.removeAttribute('data-theme');
+    var btn = $('theme');
+    btn.innerHTML = eff === 'dark' ? SUN : MOON;
+    var label = eff === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
+    btn.setAttribute('title', label);
+    btn.setAttribute('aria-label', label);
+  }
+  $('theme').addEventListener('click', function(){
+    var eff = (readPref() === 'light' || readPref() === 'dark') ? readPref() : systemTheme();
+    writePref(eff === 'dark' ? 'light' : 'dark');
+    applyTheme();
+  });
+  if(mql){
+    var onSysChange = function(){ if(!readPref()) applyTheme(); };
+    if(mql.addEventListener) mql.addEventListener('change', onSysChange);
+    else if(mql.addListener) mql.addListener(onSysChange);
+  }
+
   $('go').addEventListener('click', run);
   renderRules();
   syncMode();
+  applyTheme();
   render([], {maxLen:400});
 })();
 </script>
