@@ -6,8 +6,7 @@ per-chunk prefix, a voice-switch limit, and speaker re-labeling when a single
 line gets cut across chunks.
 
 It began as a Twitch "cheer" copypasta formatter and was generalized into a
-neutral text-chunking utility. See [`conversation.md`](conversation.md) for the
-full requirements history.
+neutral text-chunking utility.
 
 ## Live app
 
@@ -18,18 +17,13 @@ below).
 ## Repository layout
 
 - [`public/`](public) — **the deployed site.** Only this directory is served by
-  Cloudflare (see `wrangler.jsonc`), so docs and history below stay out of the
-  public site.
+  Cloudflare (see `wrangler.jsonc`), so docs below stay out of the public site.
   - [`public/index.html`](public/index.html) — **the app.** This is the file to
     work on.
 - [`wrangler.jsonc`](wrangler.jsonc) — Cloudflare Workers config; serves
   `public/` as static assets.
-- [`conversation.md`](conversation.md) — transcript of how/why it was built
-  (intent + requirement evolution).
-- [`history/`](history) — earlier iterations, for reference only:
-  - `01-cheerpasta.py` — the original logic as a standalone Python script.
-  - `02-formatter-v1.html` — first browser version (fixed Twitch defaults).
-  - `03-formatter-v2.html` — added dynamic replacements + voice reinforcement.
+- [`CLAUDE.md`](CLAUDE.md) — guidance for AI assistants: codebase structure,
+  workflows, and the project's hard constraints.
 
 ## Deploying to Cloudflare Workers
 
@@ -97,9 +91,12 @@ npx wrangler deploy   # publish to production
 - **Output:** per-chunk character count, switch count, and a copy button, plus a
   copy-all.
 
+## License
+
+Released under the [MIT License](LICENSE).
+
 ## Possible next steps
 
-- Add a `LICENSE` of your choosing (left blank intentionally).
 - Optional `localStorage` persistence for replacement-rule presets — deliberately
   left out so the file renders cleanly in sandboxed previews, but safe to add for a
   self-hosted deployment.
