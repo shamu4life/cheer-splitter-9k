@@ -37,11 +37,13 @@
   .sub{color:var(--muted);font-size:13px;margin:0 0 20px}
   .mark{width:13px;height:13px;border-radius:3px;transform:rotate(45deg);background:linear-gradient(135deg,var(--accent-lite),var(--accent));box-shadow:0 0 8px rgba(145,70,255,.55);flex:0 0 auto;display:inline-block}
 
-  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 2px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 12px;margin:0 0 2px}
   .topbar h1{margin:0}
-  .themebtn{flex:0 0 auto;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;padding:0;border:1px solid var(--border);background:var(--panel2);color:var(--muted);border-radius:9px;cursor:pointer}
-  .themebtn:hover{color:var(--text);border-color:var(--accent)}
-  .themebtn svg{display:block}
+  .themebar{position:relative;flex:0 0 auto;display:inline-flex;background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:3px}
+  .tthumb{position:absolute;top:3px;bottom:3px;left:3px;width:calc((100% - 6px)/3);border-radius:6px;background:var(--accent);transition:transform .18s ease;pointer-events:none}
+  .tseg{position:relative;z-index:1;width:52px;text-align:center;border:0;background:transparent;color:var(--muted);font-family:var(--ui);font-size:12px;font-weight:700;letter-spacing:.01em;padding:5px 0;border-radius:6px;cursor:pointer}
+  .tseg:hover{color:var(--text)}
+  .tseg[aria-checked="true"]{color:#fff}
 
   label{display:block;font-size:11px;color:var(--muted);margin:0 0 6px;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
   textarea,input[type=text],input[type=number]{
@@ -123,13 +125,18 @@
 <div class="wrap">
   <div class="topbar">
     <h1><span class="mark"></span> Voice Chunker</h1>
-    <button type="button" class="themebtn" id="theme" aria-label="Toggle theme"></button>
+    <div class="themebar" role="radiogroup" aria-label="Theme">
+      <span class="tthumb" id="themeThumb" aria-hidden="true"></span>
+      <button type="button" class="tseg" id="themeAuto" role="radio" aria-checked="true">Auto</button>
+      <button type="button" class="tseg" id="themeLight" role="radio" aria-checked="false">Light</button>
+      <button type="button" class="tseg" id="themeDark" role="radio" aria-checked="false">Dark</button>
+    </div>
   </div>
   <p class="sub">Tag dialogue by speaker, run find/replace, and split it into size-capped chunks.</p>
 
   <div class="modebar" role="radiogroup" aria-label="Input type">
-    <button type="button" class="seg active" id="modeScript" role="radio" aria-checked="true">Script</button>
-    <button type="button" class="seg" id="modeProse" role="radio" aria-checked="false">Prose</button>
+    <button type="button" class="seg" id="modeScript" role="radio" aria-checked="false">Script</button>
+    <button type="button" class="seg active" id="modeProse" role="radio" aria-checked="true">Prose</button>
   </div>
   <p class="modehint" id="modehint"></p>
 
@@ -185,7 +192,7 @@
 (function(){
   "use strict";
   var $ = function(id){ return document.getElementById(id); };
-  var mode = 'script', ran = false;
+  var mode = 'prose', ran = false;
   function escapeRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
   function countSwitches(arr){ var s=0; for(var i=1;i<arr.length;i++) if(arr[i]!==arr[i-1]) s++; return s; }
 
@@ -441,36 +448,26 @@
     run();
   });
 
-  /* ---- theme: follow the OS by default, with a remembered manual override ---- */
-  var SUN  = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>';
-  var MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>';
-  var mql = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
-  function readPref(){ try{ return localStorage.getItem('vc-theme'); }catch(e){ return null; } }
-  function writePref(v){ try{ localStorage.setItem('vc-theme', v); }catch(e){} }
-  function systemTheme(){ return (mql && mql.matches) ? 'dark' : 'light'; }
+  /* ---- theme: Auto (follow OS) / Light / Dark, remembered ---- */
+  var THEMES = ['auto','light','dark'];
+  function segId(name){ return 'theme' + name.charAt(0).toUpperCase() + name.slice(1); }
+  var memPref = null; // in-memory fallback so the control still works where storage is blocked
+  function readPref(){ try{ var v = localStorage.getItem('vc-theme'); return v == null ? memPref : v; }catch(e){ return memPref; } }
+  function writePref(v){ memPref = v; try{ localStorage.setItem('vc-theme', v); }catch(e){} }
+  function themeChoice(){ var p = readPref(); return (p==='light'||p==='dark'||p==='auto') ? p : 'auto'; }
   function applyTheme(){
-    var pref = readPref();
-    var explicit = (pref === 'light' || pref === 'dark');
-    var eff = explicit ? pref : systemTheme();
-    // Only pin an attribute for an explicit choice; otherwise let CSS follow the OS live.
-    if(explicit) document.documentElement.setAttribute('data-theme', pref);
-    else document.documentElement.removeAttribute('data-theme');
-    var btn = $('theme');
-    btn.innerHTML = eff === 'dark' ? SUN : MOON;
-    var label = eff === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
-    btn.setAttribute('title', label);
-    btn.setAttribute('aria-label', label);
+    var choice = themeChoice();
+    // 'auto' leaves data-theme off so the CSS media query keeps following the OS live.
+    if(choice === 'auto') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', choice);
+    var idx = THEMES.indexOf(choice); if(idx < 0) idx = 0;
+    THEMES.forEach(function(name, i){ $(segId(name)).setAttribute('aria-checked', String(i === idx)); });
+    var thumb = $('themeThumb');
+    if(thumb) thumb.style.transform = 'translateX(' + (idx * 100) + '%)';
   }
-  $('theme').addEventListener('click', function(){
-    var eff = (readPref() === 'light' || readPref() === 'dark') ? readPref() : systemTheme();
-    writePref(eff === 'dark' ? 'light' : 'dark');
-    applyTheme();
+  THEMES.forEach(function(name){
+    $(segId(name)).addEventListener('click', function(){ writePref(name); applyTheme(); });
   });
-  if(mql){
-    var onSysChange = function(){ if(!readPref()) applyTheme(); };
-    if(mql.addEventListener) mql.addEventListener('change', onSysChange);
-    else if(mql.addListener) mql.addListener(onSysChange);
-  }
 
   $('go').addEventListener('click', run);
   renderRules();
