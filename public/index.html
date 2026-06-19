@@ -17,6 +17,18 @@
     --mono:ui-monospace,"Cascadia Code",Menlo,Consolas,monospace;
     --ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   }
+  /* Light palette: applied automatically when the OS prefers light (and the user
+     hasn't picked a theme), or explicitly via data-theme="light" on <html>. */
+  @media (prefers-color-scheme:light){
+    :root:not([data-theme]){
+      --bg:#f5f6f8; --panel:#ffffff; --panel2:#eceef1; --border:#d7dadf;
+      --text:#17171b; --muted:#54545f; --dim:#6c6c77; --accent-lite:#6d28d9;
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#f5f6f8; --panel:#ffffff; --panel2:#eceef1; --border:#d7dadf;
+    --text:#17171b; --muted:#54545f; --dim:#6c6c77; --accent-lite:#6d28d9;
+  }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);font-family:var(--ui);line-height:1.5;-webkit-text-size-adjust:100%}
   .wrap{max-width:780px;margin:0 auto;padding:20px 16px 56px}
@@ -24,6 +36,12 @@
   h1{font-size:20px;margin:0 0 2px;letter-spacing:-.01em;display:flex;align-items:center;gap:9px}
   .sub{color:var(--muted);font-size:13px;margin:0 0 20px}
   .mark{width:13px;height:13px;border-radius:3px;transform:rotate(45deg);background:linear-gradient(135deg,var(--accent-lite),var(--accent));box-shadow:0 0 8px rgba(145,70,255,.55);flex:0 0 auto;display:inline-block}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 2px}
+  .topbar h1{margin:0}
+  .themebtn{flex:0 0 auto;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;padding:0;border:1px solid var(--border);background:var(--panel2);color:var(--muted);border-radius:9px;cursor:pointer}
+  .themebtn:hover{color:var(--text);border-color:var(--accent)}
+  .themebtn svg{display:block}
 
   label{display:block;font-size:11px;color:var(--muted);margin:0 0 6px;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
   textarea,input[type=text],input[type=number]{
@@ -76,7 +94,7 @@
   .pill{font-size:11px;font-family:var(--mono);color:var(--accent-lite);border:1px solid rgba(145,70,255,.4);background:rgba(145,70,255,.12);border-radius:999px;padding:1px 8px}
   .stats{margin-left:auto;display:flex;gap:12px;color:var(--muted);font-size:12px;font-family:var(--mono)}
   .stats .full{color:var(--text)}
-  .meter{height:4px;background:#2a2a2e;border-radius:2px;overflow:hidden;margin-bottom:11px}
+  .meter{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:11px}
   .meter > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-lite));border-radius:2px;transition:width .3s}
   .msg{font-family:var(--mono);font-size:14px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
   .copy{margin-top:11px;width:100%;border:1px solid var(--border);background:var(--panel2);color:var(--text);border-radius:8px;padding:9px;font-size:14px;font-weight:600;cursor:pointer;transition:border-color .15s,background .15s}
@@ -88,16 +106,38 @@
   .note b{color:var(--muted);font-weight:600}
   code{font-family:var(--mono);color:var(--accent-lite)}
 
+  .modebar{display:inline-flex;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:3px;gap:3px;margin:0 0 8px}
+  .seg{border:0;background:transparent;color:var(--muted);font-family:var(--ui);font-size:13px;font-weight:600;padding:7px 18px;border-radius:7px;cursor:pointer}
+  .seg:hover{color:var(--text)}
+  .seg.active{background:var(--accent);color:#fff}
+  .modehint{color:var(--dim);font-size:12px;margin:0 0 16px;min-height:1em}
+  .srchead{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .exbtn{flex:0 0 auto;border:1px solid var(--border);background:var(--panel2);color:var(--accent-lite);border-radius:8px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer}
+  .exbtn:hover{border-color:var(--accent)}
+  .hide{display:none!important}
+
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1><span class="mark"></span> Voice Chunker</h1>
+  <div class="topbar">
+    <h1><span class="mark"></span> Voice Chunker</h1>
+    <button type="button" class="themebtn" id="theme" aria-label="Toggle theme"></button>
+  </div>
   <p class="sub">Tag dialogue by speaker, run find/replace, and split it into size-capped chunks.</p>
 
-  <label for="src">Source text</label>
-  <textarea id="src" placeholder="One line per speaker, e.g.&#10;&#10;ALICE: First line of dialogue.&#10;BOB: A reply.&#10;&#10;Lines without a NAME: prefix are read as a 'narrator' voice."></textarea>
+  <div class="modebar" role="radiogroup" aria-label="Input type">
+    <button type="button" class="seg active" id="modeScript" role="radio" aria-checked="true">Script</button>
+    <button type="button" class="seg" id="modeProse" role="radio" aria-checked="false">Prose</button>
+  </div>
+  <p class="modehint" id="modehint"></p>
+
+  <div class="srchead">
+    <label for="src">Source text</label>
+    <button type="button" class="exbtn" id="example">Load example</button>
+  </div>
+  <textarea id="src"></textarea>
 
   <div class="block">
     <p class="block-title">Replacements</p>
@@ -110,18 +150,18 @@
   </div>
 
   <details open>
-    <summary><span class="chev">▸</span> Splitting &amp; voice options</summary>
+    <summary><span class="chev">▸</span> <span id="opts-summary-text">Splitting &amp; voice options</span></summary>
     <div class="details-body">
       <div class="opts-grid">
         <div class="field"><label for="lead">Prefix each split with</label><input type="text" id="lead" value="" placeholder="optional — e.g. a tag on every chunk" spellcheck="false"></div>
-        <div class="field"><label for="sep">Separator between lines</label><input type="text" id="sep" value=" " spellcheck="false"><div class="hint">A single space by default.</div></div>
+        <div class="field"><label for="sep" id="sep-label">Separator between lines</label><input type="text" id="sep" value=" " spellcheck="false"><div class="hint">A single space by default.</div></div>
         <div class="field"><label for="maxlen">Max chars / chunk</label><input type="number" id="maxlen" value="400" min="20" inputmode="numeric"></div>
-        <div class="field"><label for="maxsw">Max voice switches</label><input type="number" id="maxsw" value="" placeholder="no limit" min="0" inputmode="numeric"><div class="hint">Leave blank for no limit.</div></div>
-        <div class="field" style="grid-column:1/-1"><label for="lblfmt">Speaker label format</label><input type="text" id="lblfmt" value="{name}:" spellcheck="false"><div class="hint"><code>{name}</code> is replaced with the speaker. Dialogue follows after a space.</div></div>
+        <div class="field" id="f-maxsw"><label for="maxsw">Max voice switches</label><input type="number" id="maxsw" value="" placeholder="no limit" min="0" inputmode="numeric"><div class="hint">A switch = the speaker changing within a chunk. Blank = no limit.</div></div>
+        <div class="field" id="f-lblfmt" style="grid-column:1/-1"><label for="lblfmt">Speaker label format</label><input type="text" id="lblfmt" value="{name}:" spellcheck="false"><div class="hint"><code>{name}</code> is replaced with the speaker. Dialogue follows after a space.</div></div>
       </div>
       <div class="toggles">
-        <label class="toggle"><input type="checkbox" id="countNarr"> Count narrator as a voice</label>
-        <label class="toggle"><input type="checkbox" id="repeatSpk" checked> Repeat speaker on continued lines</label>
+        <label class="toggle" id="t-countNarr"><input type="checkbox" id="countNarr"> Count narrator as a voice</label>
+        <label class="toggle" id="t-repeatSpk"><input type="checkbox" id="repeatSpk" checked> Repeat speaker on continued lines</label>
         <label class="toggle"><input type="checkbox" id="markCont" checked> Mark continuations with …</label>
       </div>
     </div>
@@ -131,11 +171,13 @@
   <div id="out"></div>
 
   <p class="note">
-    <b>Voices &amp; switches:</b> each <code>NAME:</code> tag is a voice; a switch is when the speaker changes between two lines inside one chunk. Set a cap in the options, or leave it blank for no limit. Untagged lines are a <b>narrator</b> voice and don't count toward the limit unless you enable it.
+    <b>Script vs Prose:</b> <b>Script</b> reads one line per speaker (<code>NAME: dialogue</code>); untagged lines become a <b>narrator</b> voice. <b>Prose</b> ignores tags and splits a wall of text on sentence boundaries — handy when there are no speakers.
     <br><br>
-    <b>Continued lines:</b> when one line is too long for a single chunk, it's cut on word boundaries and every continuation re-opens with the speaker name so the right voice carries over.
+    <b>Voices &amp; switches</b> (script only): a switch is when the speaker changes between two lines inside one chunk. Set a cap in the options, or leave it blank for no limit. The narrator doesn't count unless you enable it.
     <br><br>
-    <b>Privacy:</b> everything runs in this page; nothing you paste leaves your device. (Self-hosting? Add <code>localStorage</code> if you want it to remember your rule presets.)
+    <b>Continued lines:</b> anything too long for a single chunk is cut on word boundaries and marked with <code>…</code>; in script mode each continuation re-opens with the speaker name so the right voice carries over.
+    <br><br>
+    <b>Privacy:</b> everything runs in this page; nothing you paste leaves your device.
   </p>
 </div>
 
@@ -143,6 +185,7 @@
 (function(){
   "use strict";
   var $ = function(id){ return document.getElementById(id); };
+  var mode = 'script', ran = false;
   function escapeRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
   function countSwitches(arr){ var s=0; for(var i=1;i<arr.length;i++) if(arr[i]!==arr[i-1]) s++; return s; }
 
@@ -192,15 +235,37 @@
     return out;
   }
 
+  function hasLetter(s){ return /[^\s\d.,;:!?'"()\[\]{}\/\\|@#%$&*+=~`<>_-]/.test(s); }
+  function matchSpeaker(line){
+    // NAME: dialogue — the colon must be followed by whitespace (or end the line)
+    // and the name must contain a letter, so URLs (https://), clock times (9:30)
+    // and other stray colons aren't mistaken for speakers.
+    var m = line.match(/^([^:]{1,30}):(?:\s+(.*))?$/);
+    if(!m) return null;
+    var name = m[1].trim();
+    if(!name || !hasLetter(name)) return null;
+    return { speaker:name, text:(m[2]||'').trim() };
+  }
+
   function parseSegments(text){
     var segs=[];
     text.split(/\r?\n/).forEach(function(raw){
       var line = raw.trim(); if(!line) return;
-      var m = line.match(/^([^:]{1,30}):\s*(.*)$/);
-      if(m) segs.push({speaker:m[1].trim(), text:m[2].trim()});
+      var sp = matchSpeaker(line);
+      if(sp) segs.push({speaker:sp.speaker, text:sp.text});
       else segs.push({speaker:'narrator', text:line});
     });
     return segs;
+  }
+
+  function splitSentences(text){
+    var t = String(text).replace(/\s+/g,' ').trim();
+    if(!t) return [];
+    // Break only where end punctuation is followed by a space, so periods inside
+    // URLs, decimals, etc. stay put. Whitespace was collapsed above, so a newline
+    // is a safe split marker.
+    t = t.replace(/([.!?]+["'”’)\]]*) /g, '$1\n');
+    return t.split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
   }
 
   function labelText(sp, opts){ return opts.lblfmt.replace('{name}', sp); }
@@ -282,7 +347,7 @@
     var voices=[]; splits.forEach(function(s){ s.speakers.forEach(function(sp){ if(voices.indexOf(sp)<0) voices.push(sp); }); });
     var summary=el('div','summary');
     summary.appendChild(el('span','count', splits.length+(splits.length===1?' chunk':' chunks')));
-    summary.appendChild(el('span','who','voices: '+voices.join(', ')));
+    if(opts.mode !== 'prose') summary.appendChild(el('span','who','voices: '+voices.join(', ')));
     var copyAll=el('button','copyall','Copy all'); copyAll.setAttribute('data-label','Copy all');
     copyAll.addEventListener('click', function(){ copyText(splits.map(function(s){return s.text;}).join('\n'), copyAll); });
     summary.appendChild(copyAll); out.appendChild(summary);
@@ -314,6 +379,7 @@
     var maxsw = msRaw==='' ? Infinity : parseInt(msRaw,10);
     if(isNaN(maxsw)) maxsw = Infinity;
     return {
+      mode: mode,
       prefix: prefix,
       sep: $('sep').value.length ? $('sep').value : ' ',
       maxLen: parseInt($('maxlen').value,10) || 400,
@@ -330,13 +396,86 @@
   function run(){
     var opts = readOpts();
     var text = applyReplacements($('src').value, opts);
-    var segs = parseSegments(text);
+    var segs;
+    if(opts.mode === 'prose'){
+      // Wall of text: no speakers, split on sentences, voice limits don't apply.
+      opts.maxSwitches = Infinity;
+      opts.countNarrator = false;
+      segs = splitSentences(text).map(function(s){ return {speaker:'narrator', text:s}; });
+    } else {
+      segs = parseSegments(text);
+    }
     var expanded = expand(segs, opts);
     render(pack(expanded, opts), opts);
+    ran = true;
+  }
+
+  /* ---- mode (script vs prose) + examples ---- */
+  var SCRIPT_PH = "One line per speaker, e.g.\n\nALICE: First line of dialogue.\nBOB: A reply.\n\nLines without a NAME: prefix are read as a 'narrator' voice.";
+  var PROSE_PH  = "Paste a wall of text — it's split on sentence boundaries into size-capped chunks. No NAME: tags needed.";
+  var SCRIPT_EXAMPLE = "ALICE: Hey, did you ever finish the quarterly report?\nBOB: Almost — just polishing the summary section now.\nALICE: Great. Send it over when you're done and I'll give it a read before the meeting at the top of the hour.\nBOB: Will do.";
+  var PROSE_EXAMPLE  = "The workshop starts at 9:30 sharp, so plan to arrive a few minutes early. Please bring a laptop and its charger. Full details are posted at https://example.com/workshop. Note: seating is limited and we can't guarantee a spot for walk-ins, so register in advance if you possibly can.";
+
+  function syncMode(){
+    var prose = mode === 'prose';
+    $('modeScript').classList.toggle('active', !prose);
+    $('modeProse').classList.toggle('active', prose);
+    $('modeScript').setAttribute('aria-checked', String(!prose));
+    $('modeProse').setAttribute('aria-checked', String(prose));
+    $('f-maxsw').classList.toggle('hide', prose);
+    $('f-lblfmt').classList.toggle('hide', prose);
+    $('t-countNarr').classList.toggle('hide', prose);
+    $('t-repeatSpk').classList.toggle('hide', prose);
+    $('sep-label').textContent = prose ? 'Separator between sentences' : 'Separator between lines';
+    $('opts-summary-text').textContent = prose ? 'Splitting options' : 'Splitting & voice options';
+    $('src').placeholder = prose ? PROSE_PH : SCRIPT_PH;
+    $('modehint').textContent = prose
+      ? 'Splits a wall of text on sentence boundaries. NAME: tags are ignored.'
+      : 'One line per speaker as NAME: dialogue. Untagged lines become a narrator voice.';
+  }
+  function setMode(m){ mode = m; syncMode(); if(ran) run(); }
+  $('modeScript').addEventListener('click', function(){ setMode('script'); });
+  $('modeProse').addEventListener('click', function(){ setMode('prose'); });
+  $('example').addEventListener('click', function(){
+    $('src').value = mode === 'prose' ? PROSE_EXAMPLE : SCRIPT_EXAMPLE;
+    run();
+  });
+
+  /* ---- theme: follow the OS by default, with a remembered manual override ---- */
+  var SUN  = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>';
+  var MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path></svg>';
+  var mql = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  function readPref(){ try{ return localStorage.getItem('vc-theme'); }catch(e){ return null; } }
+  function writePref(v){ try{ localStorage.setItem('vc-theme', v); }catch(e){} }
+  function systemTheme(){ return (mql && mql.matches) ? 'dark' : 'light'; }
+  function applyTheme(){
+    var pref = readPref();
+    var explicit = (pref === 'light' || pref === 'dark');
+    var eff = explicit ? pref : systemTheme();
+    // Only pin an attribute for an explicit choice; otherwise let CSS follow the OS live.
+    if(explicit) document.documentElement.setAttribute('data-theme', pref);
+    else document.documentElement.removeAttribute('data-theme');
+    var btn = $('theme');
+    btn.innerHTML = eff === 'dark' ? SUN : MOON;
+    var label = eff === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
+    btn.setAttribute('title', label);
+    btn.setAttribute('aria-label', label);
+  }
+  $('theme').addEventListener('click', function(){
+    var eff = (readPref() === 'light' || readPref() === 'dark') ? readPref() : systemTheme();
+    writePref(eff === 'dark' ? 'light' : 'dark');
+    applyTheme();
+  });
+  if(mql){
+    var onSysChange = function(){ if(!readPref()) applyTheme(); };
+    if(mql.addEventListener) mql.addEventListener('change', onSysChange);
+    else if(mql.addListener) mql.addListener(onSysChange);
   }
 
   $('go').addEventListener('click', run);
   renderRules();
+  syncMode();
+  applyTheme();
   render([], {maxLen:400});
 })();
 </script>

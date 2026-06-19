@@ -97,11 +97,13 @@ These are the project's defining properties. **Do not break them without an
 explicit request:**
 
 - **One file.** No build step, no framework, no dependencies, no external
-  resources. System font stacks only — **no web fonts, no CDN, no images**.
+  resources. System font stacks only — **no web fonts, no CDN, no external
+  images** (inline SVG icons are fine — they ship inside the file).
 - **No network calls.** `fetch`/XHR are not used and must not be added.
-- **No `localStorage` / `sessionStorage`.** Deliberately omitted so the file
-  renders cleanly in sandboxed previews. (Safe to add for a self-hosted build,
-  but only on request.)
+- **Storage:** the only `localStorage` use is remembering the light/dark theme
+  choice (key `vc-theme`), wrapped in `try/catch` so sandboxed previews that
+  block storage still render and run. Don't add other `localStorage` /
+  `sessionStorage` use without an explicit request.
 - **Vanilla JS**, IIFE-wrapped, `"use strict"`, ES5-ish style (`var`, function
   expressions) — match the surrounding code's idiom when editing.
 - **Privacy:** everything runs client-side; pasted text never leaves the device.
@@ -109,8 +111,13 @@ explicit request:**
 
 ## Feature spec (intended behavior)
 
-- **Source format:** one line per speaker, `NAME: dialogue`. No-prefix line →
-  `narrator` voice. (Name match is `^([^:]{1,30}):`.)
+- **Input mode:** a Script/Prose toggle. **Script** parses `NAME: dialogue`
+  lines (untagged → `narrator` voice); **Prose** ignores tags and splits a wall
+  of text on sentence boundaries (it breaks only where end punctuation is
+  followed by a space, so periods in URLs/decimals survive). Script's speaker
+  match requires the colon to be followed by whitespace (or end of line) and the
+  name to contain a letter, so URLs, clock times, and numeric lines aren't
+  treated as speakers.
 - **Replacements:** ordered find→replace rules; global Match-case and Whole-word
   toggles.
 - **Chunking:** greedy pack into chunks ≤ "Max chars / chunk" (prefix counts
@@ -124,6 +131,8 @@ explicit request:**
   (toggle) and is marked with `…` (toggle). Continuation chunks must reinforce
   who is speaking.
 - **Output:** per-chunk char count, switch count, copy button, plus copy-all.
+- **Theme:** follows the OS (`prefers-color-scheme`) by default; the header
+  toggle overrides and persists the choice (see Storage above).
 
 ## Conventions & gotchas for editors
 
