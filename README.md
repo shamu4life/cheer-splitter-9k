@@ -11,13 +11,19 @@ full requirements history.
 
 ## Live app
 
-`index.html` is the entire app. Open it directly in a browser, or deploy it as a
-static site (see **Deploying to Cloudflare Pages** below).
+[`public/index.html`](public/index.html) is the entire app. Open it directly in a
+browser, or deploy it as a static site (see **Deploying to Cloudflare Workers**
+below).
 
 ## Repository layout
 
-- [`index.html`](index.html) — **the app.** Lives at the repo root so static
-  hosts serve it as the default document. This is the file to work on.
+- [`public/`](public) — **the deployed site.** Only this directory is served by
+  Cloudflare (see `wrangler.jsonc`), so docs and history below stay out of the
+  public site.
+  - [`public/index.html`](public/index.html) — **the app.** This is the file to
+    work on.
+- [`wrangler.jsonc`](wrangler.jsonc) — Cloudflare Workers config; serves
+  `public/` as static assets.
 - [`conversation.md`](conversation.md) — transcript of how/why it was built
   (intent + requirement evolution).
 - [`history/`](history) — earlier iterations, for reference only:
@@ -25,27 +31,40 @@ static site (see **Deploying to Cloudflare Pages** below).
   - `02-formatter-v1.html` — first browser version (fixed Twitch defaults).
   - `03-formatter-v2.html` — added dynamic replacements + voice reinforcement.
 
-## Deploying to Cloudflare Pages
+## Deploying to Cloudflare Workers
 
-This is a pure static site — no build step. In the Cloudflare Pages project
-settings, connect this repo and use:
+This repo is connected to **Cloudflare Workers** (Workers Builds) and serves the
+`public/` directory as [static assets](https://developers.cloudflare.com/workers/static-assets/).
+There is no build step. The relevant config is [`wrangler.jsonc`](wrangler.jsonc):
 
-| Setting                    | Value             |
-| -------------------------- | ----------------- |
-| Framework preset           | **None**          |
-| Build command              | **(leave empty)** |
-| Build output directory     | **`/`** (root)    |
-| Root directory             | **`/`** (root)    |
+```jsonc
+{
+  "name": "cheer-splitter-9k",
+  "assets": { "directory": "./public" }
+}
+```
 
-`index.html` sits at the repository root, so Pages serves it as the site's
-index automatically.
+How deploys happen:
 
-> **Why this matters:** the original export shipped the app inside a
-> `voice-chunker-export/` subfolder. If that structure is committed and the build
-> output directory points at the repo root, Pages finds no `index.html` at the
-> root and serves a blank page / 404. Keeping `index.html` at the root (as it is
-> here) avoids that. If you instead keep the app in a subfolder, set the build
-> output directory to that subfolder.
+- **Production:** Workers Builds deploys on every push to the **`main`** branch
+  (the configured production branch), running `npx wrangler deploy`.
+- **Previews:** pull requests get a preview deployment automatically.
+
+> **Why a deploy can silently not happen:** Workers Builds needs `wrangler.jsonc`
+> present on the production branch. When the repo was first connected, Cloudflare
+> opened an automatic PR adding this file; **production does not deploy until that
+> config is on `main`.** It now is.
+>
+> Note also that a repo's **GitHub default branch** (set to whichever branch is
+> pushed first to an empty repo) is independent of Cloudflare's **production
+> branch** — make sure the GitHub default is `main` for consistency.
+
+To deploy or preview locally with the Cloudflare CLI:
+
+```sh
+npx wrangler dev      # local preview
+npx wrangler deploy   # publish to production
+```
 
 ## Tech facts (relevant to debugging)
 
@@ -56,7 +75,7 @@ index automatically.
 - **No `localStorage` / `sessionStorage`.**
 - Browser APIs used at runtime:
   - **Clipboard:** `navigator.clipboard.writeText()` with an `execCommand('copy')`
-    fallback. Requires a secure context (HTTPS) — satisfied by Cloudflare Pages.
+    fallback. Requires a secure context (HTTPS) — satisfied by Cloudflare Workers.
   - Standard DOM only otherwise.
 
 ## Feature spec (intended behavior)
