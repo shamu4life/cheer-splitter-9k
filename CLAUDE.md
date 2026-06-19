@@ -14,8 +14,7 @@ is a single-file, dependency-free web tool that:
    across chunks.
 
 It started life as a Twitch "cheer" copypasta formatter and was generalized into
-a neutral text-chunking utility. The full requirement history lives in
-[`conversation.md`](conversation.md).
+a neutral text-chunking utility.
 
 ## The one file that matters
 
@@ -24,21 +23,17 @@ self-contained HTML page with inline `<style>` and a single inline `<script>`
 (vanilla JS, IIFE, `"use strict"`). **This is the only file to edit when changing
 app behavior.** There is no `src/`, no bundler, no package manager.
 
-Everything else in the repo is documentation, deploy config, or frozen history.
+Everything else in the repo is documentation or deploy config.
 
 ## Repository layout
 
 | Path | Role |
 |---|---|
-| `public/` | **The deployed site.** Cloudflare serves *only* this directory, so docs/history stay out of production. |
+| `public/` | **The deployed site.** Cloudflare serves *only* this directory, so docs stay out of production. |
 | `public/index.html` | **The app.** Edit this. |
 | `wrangler.jsonc` | Cloudflare Workers config — serves `public/` as static assets. |
 | `README.md` | Human-facing overview, feature spec, deploy notes. |
-| `conversation.md` | Transcript of how/why the tool was built (intent + requirement evolution). |
-| `history/` | **Reference only — do not edit or deploy.** Earlier iterations. |
-| `history/01-cheerpasta.py` | Original logic as a standalone Python script. |
-| `history/02-formatter-v1.html` | First browser version (fixed Twitch defaults). |
-| `history/03-formatter-v2.html` | Added dynamic replacements + voice reinforcement. |
+| `CLAUDE.md` | This file — assistant-facing guidance. |
 | `.gitignore` | Ignores wrangler/env artifacts (`.wrangler`, `.dev.vars*`, `.env*`). |
 
 ## How to run / develop
@@ -137,7 +132,6 @@ explicit request:**
 - The app de-branded away from Twitch specifics; defaults are neutral (blank
   prefix, blank switch cap = no limit, `400`-char default, `ALICE`/`BOB`
   placeholders). Don't reintroduce use-case-specific defaults.
-- `history/` is a frozen record — treat it as read-only reference.
 - There is intentionally **no `LICENSE`** (left blank).
 
 ## Working in this repo (workflow for assistants)
