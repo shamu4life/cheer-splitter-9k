@@ -91,9 +91,12 @@ npx wrangler deploy   # publish to production
 - **Output:** per-chunk character count, switch count, and a copy button, plus a
   copy-all.
 
+## License
+
+Released under the [MIT License](LICENSE).
+
 ## Possible next steps
 
-- Add a `LICENSE` of your choosing (left blank intentionally).
 - Optional `localStorage` persistence for replacement-rule presets — deliberately
   left out so the file renders cleanly in sandboxed previews, but safe to add for a
   self-hosted deployment.

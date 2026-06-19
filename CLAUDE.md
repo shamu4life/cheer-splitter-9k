@@ -132,7 +132,7 @@ explicit request:**
 - The app de-branded away from Twitch specifics; defaults are neutral (blank
   prefix, blank switch cap = no limit, `400`-char default, `ALICE`/`BOB`
   placeholders). Don't reintroduce use-case-specific defaults.
-- There is intentionally **no `LICENSE`** (left blank).
+- Licensed under **MIT** (see `LICENSE`).
 
 ## Working in this repo (workflow for assistants)
 
