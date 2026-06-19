@@ -111,13 +111,13 @@ explicit request:**
 
 ## Feature spec (intended behavior)
 
-- **Input mode:** a Script/Prose toggle. **Script** parses `NAME: dialogue`
-  lines (untagged → `narrator` voice); **Prose** ignores tags and splits a wall
-  of text on sentence boundaries (it breaks only where end punctuation is
-  followed by a space, so periods in URLs/decimals survive). Script's speaker
-  match requires the colon to be followed by whitespace (or end of line) and the
-  name to contain a letter, so URLs, clock times, and numeric lines aren't
-  treated as speakers.
+- **Input mode:** a Script/Prose toggle (**Prose is the default**). **Script**
+  parses `NAME: dialogue` lines (untagged → `narrator` voice); **Prose** ignores
+  tags and splits a wall of text on sentence boundaries (it breaks only where end
+  punctuation is followed by a space, so periods in URLs/decimals survive).
+  Script's speaker match requires the colon to be followed by whitespace (or end
+  of line) and the name to contain a letter, so URLs, clock times, and numeric
+  lines aren't treated as speakers.
 - **Replacements:** ordered find→replace rules; global Match-case and Whole-word
   toggles.
 - **Chunking:** greedy pack into chunks ≤ "Max chars / chunk" (prefix counts
@@ -131,8 +131,9 @@ explicit request:**
   (toggle) and is marked with `…` (toggle). Continuation chunks must reinforce
   who is speaking.
 - **Output:** per-chunk char count, switch count, copy button, plus copy-all.
-- **Theme:** follows the OS (`prefers-color-scheme`) by default; the header
-  toggle overrides and persists the choice (see Storage above).
+- **Theme:** an **Auto / Light / Dark** slider in the header. **Auto** (the
+  default) follows the OS via `prefers-color-scheme`; Light/Dark pin an explicit
+  choice. The selection persists (see Storage above).
 
 ## Conventions & gotchas for editors
 

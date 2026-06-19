@@ -1,10 +1,10 @@
 # Voice Chunker
 
 A single-file, dependency-free web tool that splits text into size-capped chunks —
-either as a **script** (tag lines by speaker, with an optional voice-switch limit
-and speaker re-labeling when a line is cut across chunks) or as **prose** (split a
-wall of text on sentence boundaries). Includes ordered find/replace rules, an
-optional per-chunk prefix, and a light/dark theme that follows your device.
+as **prose** (split a wall of text on sentence boundaries; the default) or as a
+**script** (tag lines by speaker, with an optional voice-switch limit and speaker
+re-labeling when a line is cut across chunks). Includes ordered find/replace rules,
+an optional per-chunk prefix, and an Auto/Light/Dark theme that follows your device.
 
 It began as a Twitch "cheer" copypasta formatter and was generalized into a
 neutral text-chunking utility.
@@ -77,12 +77,12 @@ npx wrangler deploy   # publish to production
 
 ## Feature spec (intended behavior)
 
-- **Input mode:** a **Script / Prose** toggle. *Script* parses `NAME: dialogue`
-  lines (a line with no `NAME:` prefix becomes a `narrator` voice); *Prose* ignores
-  tags and splits a wall of text on sentence boundaries. Script's speaker match
-  requires the colon to be followed by whitespace (or end of line) and the name to
-  contain a letter, so URLs, clock times, and numeric lines aren't mistaken for
-  speakers.
+- **Input mode:** a **Script / Prose** toggle (**Prose is the default**). *Script*
+  parses `NAME: dialogue` lines (a line with no `NAME:` prefix becomes a `narrator`
+  voice); *Prose* ignores tags and splits a wall of text on sentence boundaries.
+  Script's speaker match requires the colon to be followed by whitespace (or end of
+  line) and the name to contain a letter, so URLs, clock times, and numeric lines
+  aren't mistaken for speakers.
 - **Replacements:** an ordered list of find→replace rules, with global Match-case
   and Whole-word toggles.
 - **Chunking:** greedy pack into chunks no longer than "Max chars / chunk" (the
@@ -97,8 +97,9 @@ npx wrangler deploy   # publish to production
   voice is speaking.
 - **Output:** per-chunk character count, switch count, and a copy button, plus a
   copy-all.
-- **Theme:** follows the OS (`prefers-color-scheme`) by default; a header toggle
-  overrides and remembers the choice via guarded `localStorage`.
+- **Theme:** an **Auto / Light / Dark** slider in the header. *Auto* (the default)
+  follows the OS via `prefers-color-scheme`; the choice is remembered via guarded
+  `localStorage`.
 
 ## License
 
