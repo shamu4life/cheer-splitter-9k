@@ -1,36 +1,170 @@
 # Voice Chunker
 
-A single-file, dependency-free web tool that splits text into size-capped chunks —
-as **prose** (split a wall of text on sentence boundaries; the default) or as a
-**script** (tag lines by speaker, with an optional voice-switch limit and speaker
-re-labeling when a line is cut across chunks). Includes ordered find/replace rules,
-an optional per-chunk prefix, and an Auto/Light/Dark theme that follows your device.
+**Paste text, get tidy size-capped chunks** — for text-to-speech and voice tools,
+character-limited boxes, and anywhere a wall of text needs to be broken into clean,
+predictable pieces.
 
-It began as a Twitch "cheer" copypasta formatter and was generalized into a
-neutral text-chunking utility.
+**▶ Try it live: [annoy.uwutoowo.com](https://annoy.uwutoowo.com/)**
 
-## Live app
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+![Single file](https://img.shields.io/badge/source-one%20HTML%20file-success)
+![Zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)
+![No build step](https://img.shields.io/badge/build-none-success)
+![Vanilla JS](https://img.shields.io/badge/vanilla-JS-f7df1e)
+![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white)
 
-[`public/index.html`](public/index.html) is the entire app. Open it directly in a
-browser, or deploy it as a static site (see **Deploying to Cloudflare Workers**
-below).
+Voice Chunker is a **single-file, dependency-free** web tool. It splits text into
+size-capped chunks two ways:
 
-## Repository layout
+- **Prose** (the default) — splits a wall of text on sentence boundaries.
+- **Script** — tags lines of dialogue by speaker (`NAME: text`), with an optional
+  voice-switch cap and speaker re-labeling when a line is cut across chunks.
 
-- [`public/`](public) — **the deployed site.** Only this directory is served by
-  Cloudflare (see `wrangler.jsonc`), so docs below stay out of the public site.
-  - [`public/index.html`](public/index.html) — **the app.** This is the file to
-    work on.
-- [`wrangler.jsonc`](wrangler.jsonc) — Cloudflare Workers config; serves
-  `public/` as static assets.
-- [`CLAUDE.md`](CLAUDE.md) — guidance for AI assistants: codebase structure,
-  workflows, and the project's hard constraints.
+Along the way it can run an ordered list of find/replace rules and prepend a prefix
+to every chunk. Everything runs **100% in your browser** — pasted text never leaves
+your device.
 
-## Deploying to Cloudflare Workers
+> It started life as a Twitch "cheer" copypasta formatter and was generalized into a
+> neutral text-chunking utility. The defaults are deliberately neutral.
 
-This repo is connected to **Cloudflare Workers** (Workers Builds) and serves the
-`public/` directory as [static assets](https://developers.cloudflare.com/workers/static-assets/).
-There is no build step. The relevant config is [`wrangler.jsonc`](wrangler.jsonc):
+---
+
+## Quick start
+
+No install, no build, no account. Pick whichever is easiest:
+
+- **Use it now:** open the live app at **[annoy.uwutoowo.com](https://annoy.uwutoowo.com/)**.
+- **Just open it.** Download [`public/index.html`](public/index.html) and open it in
+  any browser. That's the whole app, in one file.
+- **Run it locally** with the Cloudflare CLI (live-reload preview of `public/`):
+
+  ```sh
+  npx wrangler dev
+  ```
+
+- **Deploy your own** copy to Cloudflare Workers (see [Self-hosting](#self-hosting)):
+
+  ```sh
+  npx wrangler deploy
+  ```
+
+Then: paste your text → pick **Prose** or **Script** → hit **Format** → copy each
+chunk (or **Copy all**). Use **Load example** to see a ready-made sample for the
+current mode.
+
+---
+
+## Why?
+
+Lots of tools cap how much text you can hand them at once:
+
+- **Text-to-speech / voice apps** that read a block at a time, or charge per request.
+- **Character-limited fields** — chat boxes, donation/cheer messages, SMS, form inputs.
+- **Anything** where you'd otherwise eyeball a long passage and chop it by hand.
+
+Chopping by hand is tedious and error-prone: you split mid-word, lose track of who's
+speaking, or blow past the limit by a few characters. Voice Chunker does the boring
+part deterministically — it packs as much as it can into each chunk **without** going
+over your cap, breaks long lines on word boundaries, and (in Script mode) keeps the
+right speaker attached to every piece.
+
+---
+
+## Features
+
+- **Two input modes.**
+  - **Prose** (default): ignores tags and splits on sentence boundaries. It breaks
+    only where end punctuation is followed by a space, so periods inside URLs
+    (`example.com`), decimals (`3.14`), and times (`9:30`) survive intact.
+  - **Script**: parses `NAME: dialogue` lines into voices; untagged lines become a
+    `narrator` voice. The speaker match requires the colon to be followed by
+    whitespace (or end of line) and the name to contain a letter, so URLs, clock
+    times, and numeric lines aren't mistaken for speakers.
+- **Ordered find/replace.** Apply a list of rules top-to-bottom before chunking, with
+  global **Match case** and **Whole word only** toggles.
+- **Size-capped chunking.** Greedily packs segments into chunks no longer than your
+  **Max chars / chunk** (the prefix counts toward the cap).
+- **Per-chunk prefix.** Optionally prepend a tag/label to every chunk.
+- **Voice-switch limit** (Script). A "switch" is a speaker change between two adjacent
+  lines inside one chunk. Cap it, or leave it blank for no limit. The narrator is
+  excluded unless you opt in.
+- **Smart continued lines** (Script). A line too long for one chunk is word-wrapped
+  across chunks; each continuation re-opens with the speaker label and is marked with
+  `…`, so the right voice always carries over.
+- **Rich output.** Each chunk shows a character count, a switch count, a fill meter,
+  and a copy button — plus **Copy all**.
+- **Auto / Light / Dark theme.** A three-position slider in the header. **Auto** (the
+  default) follows your OS; Light/Dark pin an explicit choice, remembered between
+  visits.
+- **Private by design.** No network calls, no analytics, no servers. See
+  [Privacy](#privacy).
+
+---
+
+## How it works
+
+`run()` wires a small, predictable pipeline (all in the inline script of
+`public/index.html`):
+
+1. **`readOpts()`** — gather settings from the form (mode, prefix, separator, max
+   chars, max switches, label format, toggles).
+2. **`applyReplacements()`** — apply each find→replace rule in order, honoring the
+   Match-case / Whole-word toggles.
+3. **Parse** — in Script mode, `parseSegments()` turns `NAME: text` lines into
+   `{speaker, text}` (untagged → `narrator`). In Prose mode, `splitSentences()`
+   breaks the text into sentences.
+4. **`expand()`** — word-wrap any segment too long for a single chunk, re-opening each
+   continuation with the speaker label and `…` markers as configured.
+5. **`pack()`** — greedily pack segments into chunks that respect both the character
+   cap (prefix included) and the voice-switch cap.
+6. **`render()`** — build the result cards (counts, meter, copy buttons, copy-all).
+
+Clipboard support uses `navigator.clipboard.writeText()` with an `execCommand('copy')`
+fallback for older/locked-down contexts.
+
+---
+
+## Options reference
+
+All options live under **Splitting options** (the panel label adapts to the mode).
+
+| Option | Applies to | Default | What it does |
+|---|---|---|---|
+| **Mode** (Prose / Script) | both | Prose | Prose splits on sentences; Script parses `NAME:` dialogue. |
+| **Prefix each split with** | both | _(empty)_ | Text prepended to every chunk. Counts toward the char cap. |
+| **Separator** | both | one space | Joins lines/sentences when packing them into a chunk. |
+| **Max chars / chunk** | both | `400` | Hard cap per chunk (prefix included). |
+| **Max voice switches** | Script | _(blank = no limit)_ | Caps speaker changes within a single chunk. |
+| **Speaker label format** | Script | `{name}:` | How each speaker label is rendered (`{name}` → the speaker). |
+| **Count narrator as a voice** | Script | off | Include untagged/narrator lines in the switch count. |
+| **Repeat speaker on continued lines** | Script | on | Re-open each continuation chunk with the speaker label. |
+| **Mark continuations with …** | both | on | Add `…` markers where a line/sentence is split across chunks. |
+| **Match case** | replacements | off | Make find/replace case-sensitive. |
+| **Whole word only** | replacements | on | Only match find terms at word boundaries. |
+
+---
+
+## Privacy
+
+Everything happens client-side, in the page:
+
+- **No network calls.** No `fetch`/XHR. Your text is never uploaded.
+- **No analytics, no servers, no accounts.**
+- **Storage:** the only thing saved is your light/dark theme choice (a single
+  `localStorage` key, `vc-theme`), wrapped in `try/catch` so locked-down/sandboxed
+  contexts still work. Nothing else is stored.
+
+Because it's one self-contained file, you can audit it in a single read, save it
+offline, and run it with your network unplugged.
+
+---
+
+## Self-hosting
+
+The repo is wired up for **Cloudflare Workers** (Workers Builds), serving the
+`public/` directory as
+[static assets](https://developers.cloudflare.com/workers/static-assets/) — there is
+no Worker script, just files. The config is [`wrangler.jsonc`](wrangler.jsonc):
 
 ```jsonc
 {
@@ -39,75 +173,66 @@ There is no build step. The relevant config is [`wrangler.jsonc`](wrangler.jsonc
 }
 ```
 
-How deploys happen:
-
-- **Production:** Workers Builds deploys on every push to the **`main`** branch
-  (the configured production branch), running `npx wrangler deploy`.
-- **Previews:** pull requests get a preview deployment automatically.
-
-> **Why a deploy can silently not happen:** Workers Builds needs `wrangler.jsonc`
-> present on the production branch. When the repo was first connected, Cloudflare
-> opened an automatic PR adding this file; **production does not deploy until that
-> config is on `main`.** It now is.
->
-> Note also that a repo's **GitHub default branch** (set to whichever branch is
-> pushed first to an empty repo) is independent of Cloudflare's **production
-> branch** — make sure the GitHub default is `main` for consistency.
-
-To deploy or preview locally with the Cloudflare CLI:
+Local development and deployment:
 
 ```sh
-npx wrangler dev      # local preview
+npx wrangler dev      # local preview of public/ with live reload
 npx wrangler deploy   # publish to production
 ```
 
-## Tech facts (relevant to debugging)
+How automated deploys work here:
 
-- Pure static: one HTML file with inline CSS and vanilla JS.
-- **No build step, no framework, no dependencies, no external resources** — system
-  font stacks only (no web fonts, no CDN, no external images; inline SVG icons only).
-- **No network calls** (`fetch`/XHR are not used).
-- **Storage:** `localStorage` is used only to remember the light/dark theme choice
-  (key `vc-theme`), wrapped in `try/catch` so sandboxed previews that block storage
-  still render and run. No other storage is used.
-- Browser APIs used at runtime:
-  - **Clipboard:** `navigator.clipboard.writeText()` with an `execCommand('copy')`
-    fallback. Requires a secure context (HTTPS) — satisfied by Cloudflare Workers.
-  - Standard DOM only otherwise.
+- **Production** deploys on every push to **`main`** (runs `npx wrangler deploy`).
+- **Pull requests** get an automatic **preview** deployment — handy for reviewing a
+  change before it ships.
 
-## Feature spec (intended behavior)
+> **Gotchas (from real debugging):**
+> - Workers Builds won't deploy production until `wrangler.jsonc` exists on `main`.
+> - A repo's **GitHub default branch** is independent of Cloudflare's **production
+>   branch** — keep the GitHub default set to `main` for consistency.
 
-- **Input mode:** a **Script / Prose** toggle (**Prose is the default**). *Script*
-  parses `NAME: dialogue` lines (a line with no `NAME:` prefix becomes a `narrator`
-  voice); *Prose* ignores tags and splits a wall of text on sentence boundaries.
-  Script's speaker match requires the colon to be followed by whitespace (or end of
-  line) and the name to contain a letter, so URLs, clock times, and numeric lines
-  aren't mistaken for speakers.
-- **Replacements:** an ordered list of find→replace rules, with global Match-case
-  and Whole-word toggles.
-- **Chunking:** greedy pack into chunks no longer than "Max chars / chunk" (the
-  prefix counts toward the cap).
-- **Prefix:** optional text prepended to every chunk.
-- **Voice switches:** a "switch" is a speaker change between two lines inside one
-  chunk; the cap is optional (blank = no limit). The narrator is excluded from the
-  count unless "Count narrator as a voice" is enabled.
-- **Continued lines:** a line too long for one chunk is word-wrapped across chunks;
-  each continuation re-opens with the speaker label (toggle) and is marked with `…`
-  (toggle). This is the key behavior — continuation chunks must reinforce which
-  voice is speaking.
-- **Output:** per-chunk character count, switch count, and a copy button, plus a
-  copy-all.
-- **Theme:** an **Auto / Light / Dark** slider in the header. *Auto* (the default)
-  follows the OS via `prefers-color-scheme`; the choice is remembered via guarded
-  `localStorage`.
+Since it's just static files, you can equally host `public/` on any static host
+(GitHub Pages, Netlify, an S3 bucket, your own server) — or just open the file.
+
+---
+
+## Project layout
+
+| Path | Role |
+|---|---|
+| [`public/`](public) | **The deployed site.** Cloudflare serves *only* this directory. |
+| [`public/index.html`](public/index.html) | **The entire app** — inline CSS + vanilla JS, no assets. |
+| [`wrangler.jsonc`](wrangler.jsonc) | Cloudflare Workers config (serves `public/`). |
+| [`README.md`](README.md) | This file. |
+| [`CLAUDE.md`](CLAUDE.md) | Guidance for AI assistants and contributors. |
+| [`LICENSE`](LICENSE) | MIT. |
+
+**Tech facts:** pure static; one HTML file with inline CSS and a single vanilla-JS
+IIFE (`"use strict"`). No build step, no framework, no dependencies, no external
+resources — system font stacks only (no web fonts, no CDN, no external images; inline
+SVG icons only). Browser APIs used: Clipboard (with `execCommand` fallback),
+`matchMedia` (theme), and `localStorage` (theme only).
+
+---
+
+## Contributing
+
+The whole app is **[`public/index.html`](public/index.html)** — edit that one file and
+reload the browser. There is no build step and nothing to install.
+
+A few house rules keep the project what it is (see [CLAUDE.md](CLAUDE.md) for the full
+list):
+
+- **Stay single-file.** Keep CSS and JS inline; don't add dependencies, bundlers, or
+  external resources.
+- **No network calls**, and no storage beyond the theme key.
+- **Match the idiom:** vanilla JS, IIFE-wrapped, `"use strict"`, ES5-ish style.
+- **Branch + PR.** Develop on a feature branch and open a PR — PRs get Cloudflare
+  preview deploys, which is the safe way to verify a change. Avoid pushing straight to
+  `main` (it deploys to production).
+
+---
 
 ## License
 
 Released under the [MIT License](LICENSE).
-
-## Possible next steps
-
-- Optional `localStorage` persistence for replacement-rule presets — not yet wired
-  up, but the theme toggle already establishes the guarded-storage pattern to reuse.
-</content>
-</invoke>
