@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/social-preview.png" alt="Voice Chunker" width="720">
+</p>
+
 # Voice Chunker
 
 **Paste text, get tidy size-capped chunks** — for text-to-speech and voice tools,
@@ -67,6 +71,20 @@ speaking, or blow past the limit by a few characters. Voice Chunker does the bor
 part deterministically — it packs as much as it can into each chunk **without** going
 over your cap, breaks long lines on word boundaries, and (in Script mode) keeps the
 right speaker attached to every piece.
+
+---
+
+## Screenshots
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs/screenshot-light.png">
+    <img alt="Voice Chunker splitting a sample into size-capped chunks, in Prose mode" src="docs/screenshot-light.png" width="420">
+  </picture>
+</p>
+
+<p align="center"><em>Prose mode, mid-format — the UI follows your system light/dark theme.</em></p>
 
 ---
 
@@ -230,6 +248,17 @@ list):
 - **Branch + PR.** Develop on a feature branch and open a PR — PRs get Cloudflare
   preview deploys, which is the safe way to verify a change. Avoid pushing straight to
   `main` (it deploys to production).
+
+---
+
+## Support
+
+Voice Chunker is free, open source, and has no ads or tracking. If it saves you some
+time, you can say thanks:
+
+[**☕ Buy me a coffee →**](https://www.buymeacoffee.com/shamu4life)
+
+(There's also a **Sponsor** button at the top of the repo, wired to the same page.)
 
 ---
 
