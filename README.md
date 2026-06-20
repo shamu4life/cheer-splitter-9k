@@ -1,6 +1,6 @@
 <p align="center">
-  <img src=".github/social-preview.svg#gh-dark-mode-only" alt="Voice Chunker — paste text, get tidy size-capped chunks" width="720">
-  <img src=".github/social-preview-light.svg#gh-light-mode-only" alt="Voice Chunker — paste text, get tidy size-capped chunks" width="720">
+  <img src=".github/social-preview.svg#gh-dark-mode-only" alt="Voice Chunker — paste text, get tidy size-capped chunks" width="820">
+  <img src=".github/social-preview-light.svg#gh-light-mode-only" alt="Voice Chunker — paste text, get tidy size-capped chunks" width="820">
 </p>
 
 # Voice Chunker
@@ -11,14 +11,16 @@ predictable pieces.
 
 **▶ Try it live: [annoy.uwutoowo.com](https://annoy.uwutoowo.com/)**
 
-[![CI](https://img.shields.io/github/actions/workflow/status/shamu4life/cheer-splitter-9k/ci.yml?label=CI)](https://github.com/shamu4life/cheer-splitter-9k/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue)](docs/CHANGELOG.md)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-![Single file](https://img.shields.io/badge/source-one%20HTML%20file-success)
-![Zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)
-![No build step](https://img.shields.io/badge/build-none-success)
-![Vanilla JS](https://img.shields.io/badge/vanilla-JS-f7df1e)
-![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white)
+<p align="center">
+  <a href="https://github.com/shamu4life/cheer-splitter-9k/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/shamu4life/cheer-splitter-9k/ci.yml?label=CI" /></a>
+  <a href="docs/CHANGELOG.md"><img alt="Version 1.0.0" src="https://img.shields.io/badge/version-1.0.0-blue" /></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg" /></a>
+  <img alt="Single file" src="https://img.shields.io/badge/source-one%20HTML%20file-success" />
+  <img alt="Zero dependencies" src="https://img.shields.io/badge/dependencies-0-brightgreen" />
+  <img alt="No build step" src="https://img.shields.io/badge/build-none-success" />
+  <img alt="Vanilla JS" src="https://img.shields.io/badge/vanilla-JS-f7df1e" />
+  <a href="https://developers.cloudflare.com/workers/static-assets/"><img alt="Cloudflare Workers" src="https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white" /></a>
+</p>
 
 Voice Chunker is a **single-file, dependency-free** web tool. It splits text into
 size-capped chunks two ways:
