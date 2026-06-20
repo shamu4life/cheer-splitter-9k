@@ -474,6 +474,14 @@
   syncMode();
   applyTheme();
   render([], {maxLen:400});
+
+  /* ---- test hook: INERT in browsers (module is undefined there), so it adds
+     nothing to the shipped page. Node's node:test harness extracts and runs
+     this script with a module object in scope, which lets it unit-test the
+     pure pipeline functions while the app stays one file. ---- */
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = { escapeRe: escapeRe, countSwitches: countSwitches, applyReplacements: applyReplacements, hasLetter: hasLetter, matchSpeaker: matchSpeaker, parseSegments: parseSegments, splitSentences: splitSentences, labelText: labelText, leadFor: leadFor, renderSeg: renderSeg, wrapText: wrapText, expand: expand, pack: pack, rules: rules };
+  }
 })();
 </script>
 </body>

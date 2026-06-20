@@ -1,5 +1,6 @@
 <p align="center">
-  <img src="docs/social-preview.png" alt="Voice Chunker" width="720">
+  <img src=".github/social-preview.svg#gh-dark-mode-only" alt="Voice Chunker — paste text, get tidy size-capped chunks" width="720">
+  <img src=".github/social-preview-light.svg#gh-light-mode-only" alt="Voice Chunker — paste text, get tidy size-capped chunks" width="720">
 </p>
 
 # Voice Chunker
@@ -10,6 +11,8 @@ predictable pieces.
 
 **▶ Try it live: [annoy.uwutoowo.com](https://annoy.uwutoowo.com/)**
 
+[![CI](https://img.shields.io/github/actions/workflow/status/shamu4life/cheer-splitter-9k/ci.yml?label=CI)](https://github.com/shamu4life/cheer-splitter-9k/actions/workflows/ci.yml)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue)](docs/CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Single file](https://img.shields.io/badge/source-one%20HTML%20file-success)
 ![Zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)
@@ -238,8 +241,9 @@ SVG icons only). Browser APIs used: Clipboard (with `execCommand` fallback),
 The whole app is **[`public/index.html`](public/index.html)** — edit that one file and
 reload the browser. There is no build step and nothing to install.
 
-A few house rules keep the project what it is (see [CLAUDE.md](CLAUDE.md) for the full
-list):
+See **[CONTRIBUTING.md](.github/CONTRIBUTING.md)** for the full setup, test, versioning,
+and changelog conventions. A few house rules keep the project what it is (see also
+[CLAUDE.md](CLAUDE.md)):
 
 - **Stay single-file.** Keep CSS and JS inline; don't add dependencies, bundlers, or
   external resources.

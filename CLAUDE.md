@@ -32,9 +32,14 @@ Everything else in the repo is documentation or deploy config.
 | `public/` | **The deployed site.** Cloudflare serves *only* this directory, so docs stay out of production. |
 | `public/index.html` | **The app.** Edit this. |
 | `wrangler.jsonc` | Cloudflare Workers config — serves `public/` as static assets. |
+| `package.json` | Dev-only metadata: `npm test` (Node's `node:test`) and the Wrangler dev/deploy scripts. No runtime deps. |
+| `test/` | Node `node:test` suite — extracts the inline script from `public/index.html` and unit-tests the pure pipeline. |
+| `.github/workflows/ci.yml` | CI: install, `npm test`, then `wrangler deploy --dry-run` on push/PR to `main`. |
+| `.github/` | Community-health files (CONTRIBUTING, SECURITY, CODE_OF_CONDUCT, issue/PR templates, dependabot). |
+| `docs/CHANGELOG.md` | Release notes / change history. |
 | `README.md` | Human-facing overview, feature spec, deploy notes. |
 | `CLAUDE.md` | This file — assistant-facing guidance. |
-| `.gitignore` | Ignores wrangler/env artifacts (`.wrangler`, `.dev.vars*`, `.env*`). |
+| `.gitignore` | Ignores wrangler/env artifacts (`.wrangler`, `.dev.vars*`, `.env*`) plus `node_modules/` and `package-lock.json`. |
 
 ## How to run / develop
 
@@ -50,6 +55,24 @@ npx wrangler deploy   # publish to production (normally CI does this — see bel
 
 To make a change: edit `public/index.html`, reload the browser. That's the whole
 loop.
+
+## Testing
+
+```sh
+npm test   # Node's built-in node:test runner — zero deps to install
+```
+
+The suite (in `test/`) reads `public/index.html`, extracts the single inline
+`<script>` with a regex, and runs it in a `node:vm` context against a minimal
+null-DOM (so the IIFE's load-time wiring doesn't throw). It then unit-tests the
+**pure pipeline functions** (`splitSentences`, `parseSegments`, `expand`,
+`pack`, `wrapText`, `countSwitches`, `matchSpeaker`, `applyReplacements`, …).
+
+Those functions are reachable because of an **inert `module.exports` hook** at
+the end of the IIFE: it is guarded by `typeof module !== "undefined"`, which is
+false in browsers (so it ships nothing and the app stays one file) but true
+under Node, where it hands the test harness the internal functions. CI runs the
+same `npm test` (see `.github/workflows/ci.yml`).
 
 ## Deployment (Cloudflare Workers)
 
@@ -96,9 +119,16 @@ Clipboard: `copyText()` uses `navigator.clipboard.writeText()` with an
 These are the project's defining properties. **Do not break them without an
 explicit request:**
 
-- **One file.** No build step, no framework, no dependencies, no external
-  resources. System font stacks only — **no web fonts, no CDN, no external
-  images** (inline SVG icons are fine — they ship inside the file).
+- **One file.** No build step, no framework, no external resources. System font
+  stacks only — **no web fonts, no CDN, no external images** (inline SVG icons
+  are fine — they ship inside the file).
+- **The shipped app stays zero-dependency.** "No dependencies" applies to what
+  ships in `public/`: it must have **no runtime deps** and load nothing external.
+  Dev-only tooling does **not** ship and does **not** violate this — Wrangler is
+  a dev/deploy CLI (a `devDependency`), and the tests use only Node built-ins
+  (`node:test`, `node:vm`, `node:fs`). Neither is bundled into `public/`. Do not
+  add a runtime dependency, a `<script src>`, or any external fetch to the app,
+  and do not split the single file to accommodate tooling.
 - **No network calls.** `fetch`/XHR are not used and must not be added.
 - **Storage:** the only `localStorage` use is remembering the light/dark theme
   choice (key `vc-theme`), wrapped in `try/catch` so sandboxed previews that
