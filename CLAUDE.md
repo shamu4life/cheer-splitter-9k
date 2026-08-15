@@ -4,12 +4,12 @@ Guidance for AI assistants (and humans) working in this repository.
 
 ## What this project is
 
-**Voice Chunker** (repo: `cheer-splitter-9k`, deployed Worker: `cheer-splitter-9k`)
+Voice Chunker (repo: `cheer-splitter-9k`, deployed Worker: `cheer-splitter-9k`)
 is a single-file, dependency-free web tool that:
 
 1. Tags lines of dialogue by speaker (`NAME: text`),
 2. Runs an ordered list of find/replace rules,
-3. Splits the text into size-capped chunks — with an optional per-chunk prefix,
+3. Splits the text into size-capped chunks, with an optional per-chunk prefix,
    an optional voice-switch cap, and speaker re-labeling when one line is cut
    across chunks.
 
@@ -20,8 +20,8 @@ a neutral text-chunking utility.
 
 **[`public/index.html`](public/index.html) is the entire application.** It is a
 self-contained HTML page with inline `<style>` and a single inline `<script>`
-(vanilla JS, IIFE, `"use strict"`). **This is the only file to edit when changing
-app behavior.** There is no `src/`, no bundler, no package manager.
+(vanilla JS, IIFE, `"use strict"`). This is the only file to edit when changing
+app behavior. There is no `src/`, no bundler, no package manager.
 
 Everything else in the repo is documentation or deploy config.
 
@@ -31,21 +31,21 @@ Everything else in the repo is documentation or deploy config.
 |---|---|
 | `public/` | **The deployed site.** Cloudflare serves *only* this directory, so docs stay out of production. |
 | `public/index.html` | **The app.** Edit this. |
-| `wrangler.jsonc` | Cloudflare Workers config — serves `public/` as static assets. |
+| `wrangler.jsonc` | Cloudflare Workers config; serves `public/` as static assets. |
 | `package.json` | Dev-only metadata: `npm test` (Node's `node:test`) and the Wrangler dev/deploy scripts. No runtime deps. |
-| `test/` | Node `node:test` suite — extracts the inline script from `public/index.html` and unit-tests the pure pipeline. |
+| `test/` | Node `node:test` suite. Extracts the inline script from `public/index.html` and unit-tests the pure pipeline. |
 | `.github/workflows/ci.yml` | CI: install, `npm test`, then `wrangler deploy --dry-run` on push/PR to `main`. |
 | `.github/` | Community-health files (CONTRIBUTING, SECURITY, CODE_OF_CONDUCT, issue/PR templates, dependabot). |
 | `docs/CHANGELOG.md` | Release notes / change history. |
 | `README.md` | Human-facing overview, feature spec, deploy notes. |
-| `CLAUDE.md` | This file — assistant-facing guidance. |
+| `CLAUDE.md` | This file, holding assistant-facing guidance. |
 | `.gitignore` | Ignores wrangler/env artifacts (`.wrangler`, `.dev.vars*`, `.env*`) plus `node_modules/` and `package-lock.json`. |
 
 ## How to run / develop
 
-There is **no build step**. Either:
+There is no build step. Either:
 
-- Open `public/index.html` directly in a browser, **or**
+- Open `public/index.html` directly in a browser, or
 - Use the Cloudflare CLI from the repo root:
 
 ```sh
@@ -59,16 +59,16 @@ loop.
 ## Testing
 
 ```sh
-npm test   # Node's built-in node:test runner — zero deps to install
+npm test   # Node's built-in node:test runner, zero deps to install
 ```
 
 The suite (in `test/`) reads `public/index.html`, extracts the single inline
 `<script>` with a regex, and runs it in a `node:vm` context against a minimal
 null-DOM (so the IIFE's load-time wiring doesn't throw). It then unit-tests the
-**pure pipeline functions** (`splitSentences`, `parseSegments`, `expand`,
-`pack`, `wrapText`, `countSwitches`, `matchSpeaker`, `applyReplacements`, …).
+pure pipeline functions (`splitSentences`, `parseSegments`, `expand`,
+`pack`, `wrapText`, `countSwitches`, `matchSpeaker`, `applyReplacements`, and so on).
 
-Those functions are reachable because of an **inert `module.exports` hook** at
+Those functions are reachable because of an inert `module.exports` hook at
 the end of the IIFE: it is guarded by `typeof module !== "undefined"`, which is
 false in browsers (so it ships nothing and the app stays one file) but true
 under Node, where it hands the test harness the internal functions. CI runs the
@@ -76,7 +76,7 @@ same `npm test` (see `.github/workflows/ci.yml`).
 
 ## Deployment (Cloudflare Workers)
 
-- Connected via **Workers Builds**. `public/` is served as
+- Connected via Workers Builds. `public/` is served as
   [static assets](https://developers.cloudflare.com/workers/static-assets/);
   there is no Worker script, just assets.
 - **Production** deploys on every push to **`main`** (runs `npx wrangler deploy`).
@@ -85,46 +85,46 @@ same `npm test` (see `.github/workflows/ci.yml`).
   `./public`.
 
 Gotchas (from real debugging):
-- Workers Builds **won't deploy production until `wrangler.jsonc` exists on
-  `main`** — it does now.
-- The **GitHub default branch** is independent of Cloudflare's **production
-  branch**. Keep the GitHub default = `main` for consistency.
+- Workers Builds won't deploy production until `wrangler.jsonc` exists on
+  `main`, which it does now.
+- The GitHub default branch is independent of Cloudflare's production
+  branch. Keep the GitHub default set to `main` for consistency.
 
 ## Architecture of the app (script pipeline)
 
 `run()` wires a straightforward pipeline (all functions inside the IIFE in
 `public/index.html`):
 
-1. `readOpts()` — gather settings from the form (prefix, separator, max chars,
+1. `readOpts()` gathers settings from the form (prefix, separator, max chars,
    max switches, label format, toggles).
-2. `applyReplacements(text, opts)` — apply each find→replace rule in order, using
-   `escapeRe()` and regex flags driven by the **Match case** / **Whole word**
+2. `applyReplacements(text, opts)` applies each find→replace rule in order, using
+   `escapeRe()` and regex flags driven by the Match case and Whole word
    toggles.
-3. `parseSegments(text)` — split into lines; `NAME: text` becomes
+3. `parseSegments(text)` splits into lines; `NAME: text` becomes
    `{speaker, text}`, untagged lines become a `narrator` voice.
-4. `expand(segments, opts)` — word-wrap any segment too long for one chunk
+4. `expand(segments, opts)` word-wraps any segment too long for one chunk
    (`wrapText()`), re-opening each continuation with the speaker label
    (`repeatSpeaker`) and `…` markers (`markCont`).
-5. `pack(segments, opts)` — greedily pack segments into chunks that respect both
+5. `pack(segments, opts)` greedily packs segments into chunks that respect both
    `maxLen` (prefix counts toward the cap) and `maxSwitches`
    (`countSwitches()`, narrator excluded unless `countNarrator`).
-6. `render(splits, opts)` — build the result cards (per-chunk char count, switch
+6. `render(splits, opts)` builds the result cards (per-chunk char count, switch
    count, meter, copy button, plus copy-all).
 
 Clipboard: `copyText()` uses `navigator.clipboard.writeText()` with an
 `execCommand('copy')` fallback (`fb()`).
 
-## Hard constraints — keep these true
+## Hard constraints to keep true
 
-These are the project's defining properties. **Do not break them without an
-explicit request:**
+These are the project's defining properties. Do not break them without an
+explicit request:
 
 - **One file.** No build step, no framework, no external resources. System font
-  stacks only — **no web fonts, no CDN, no external images** (inline SVG icons
-  are fine — they ship inside the file).
+  stacks only, so no web fonts, no CDN, and no external images. Inline SVG icons
+  are fine, since they ship inside the file.
 - **The shipped app stays zero-dependency.** "No dependencies" applies to what
-  ships in `public/`: it must have **no runtime deps** and load nothing external.
-  Dev-only tooling does **not** ship and does **not** violate this — Wrangler is
+  ships in `public/`: it must have no runtime deps and load nothing external.
+  Dev-only tooling does not ship and does not violate this. Wrangler is
   a dev/deploy CLI (a `devDependency`), and the tests use only Node built-ins
   (`node:test`, `node:vm`, `node:fs`). Neither is bundled into `public/`. Do not
   add a runtime dependency, a `<script src>`, or any external fetch to the app,
@@ -135,14 +135,14 @@ explicit request:**
   block storage still render and run. Don't add other `localStorage` /
   `sessionStorage` use without an explicit request.
 - **Vanilla JS**, IIFE-wrapped, `"use strict"`, ES5-ish style (`var`, function
-  expressions) — match the surrounding code's idiom when editing.
+  expressions). Match the surrounding code's idiom when editing.
 - **Privacy:** everything runs client-side; pasted text never leaves the device.
   Preserve this.
 
 ## Feature spec (intended behavior)
 
-- **Input mode:** a Script/Prose toggle (**Prose is the default**). **Script**
-  parses `NAME: dialogue` lines (untagged → `narrator` voice); **Prose** ignores
+- **Input mode:** a Script/Prose toggle, with Prose as the default. Script
+  parses `NAME: dialogue` lines (untagged → `narrator` voice); Prose ignores
   tags and splits a wall of text on sentence boundaries (it breaks only where end
   punctuation is followed by a space, so periods in URLs/decimals survive).
   Script's speaker match requires the colon to be followed by whitespace (or end
@@ -161,24 +161,24 @@ explicit request:**
   (toggle) and is marked with `…` (toggle). Continuation chunks must reinforce
   who is speaking.
 - **Output:** per-chunk char count, switch count, copy button, plus copy-all.
-- **Theme:** an **Auto / Light / Dark** slider in the header. **Auto** (the
+- **Theme:** an Auto / Light / Dark slider in the header. Auto (the
   default) follows the OS via `prefers-color-scheme`; Light/Dark pin an explicit
   choice. The selection persists (see Storage above).
 
-## Conventions & gotchas for editors
+## Conventions and gotchas for editors
 
-- Keep style/markup/script **inline in the one file** — do not split into
+- Keep style, markup, and script inline in the one file. Do not split into
   separate `.css`/`.js` assets.
 - The app de-branded away from Twitch specifics; defaults are neutral (blank
   prefix, blank switch cap = no limit, `400`-char default, `ALICE`/`BOB`
   placeholders). Don't reintroduce use-case-specific defaults.
-- Licensed under **MIT** (see `LICENSE`).
+- Licensed under MIT (see `LICENSE`).
 
 ## Working in this repo (workflow for assistants)
 
-- Branch: do development on the assigned feature branch; **never push directly to
-  `main`** without explicit permission (a push to `main` triggers a production
-  deploy).
-- Pushing to a branch and opening a PR is the normal flow — PRs get Cloudflare
+- Branch: do development on the assigned feature branch, and never push directly to
+  `main` without explicit permission, since a push to `main` triggers a production
+  deploy.
+- Pushing to a branch and opening a PR is the normal flow. PRs get Cloudflare
   preview deploys, which is how to verify changes safely.
 - After pushing, ensure a PR exists for the branch.

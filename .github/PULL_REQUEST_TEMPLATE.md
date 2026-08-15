@@ -10,7 +10,7 @@
 
 - [ ] Bug fix (visible to users → `PATCH`)
 - [ ] New feature or capability (→ `MINOR`)
-- [ ] Breaking change — removed/renamed an option, changed default behavior, or changed the `vc-theme` storage key (→ `MAJOR`)
+- [ ] Breaking change: removed or renamed an option, changed default behavior, or changed the `vc-theme` storage key (→ `MAJOR`)
 - [ ] Internal refactor / styling / accessibility (→ `PATCH`)
 - [ ] CI / docs only (no version bump)
 
@@ -20,11 +20,11 @@
 
 - [ ] `npm test` passes (pure-pipeline unit tests)
 - [ ] `npx wrangler deploy --dry-run` passes
-- [ ] Kept single-file — CSS and JS stay inline in `public/index.html`; no separate `.css`/`.js` assets, no dependencies, no bundler, no framework, no CDN, no web fonts
+- [ ] Kept single-file, so CSS and JS stay inline in `public/index.html`; no separate `.css`/`.js` assets, no dependencies, no bundler, no framework, no CDN, no web fonts
 - [ ] No network calls added (`fetch`/XHR stay out)
-- [ ] No new `localStorage` / `sessionStorage` beyond the `vc-theme` theme key **— or** N/A
-- [ ] New pure-pipeline behavior has a `test/chunk.test.mjs` case added/updated **— or** N/A
-- [ ] Smoke-tested in a browser (open `public/index.html` or `npx wrangler dev`) — describe how in the Summary
+- [ ] No new `localStorage` / `sessionStorage` beyond the `vc-theme` theme key or N/A
+- [ ] New pure-pipeline behavior has a `test/chunk.test.mjs` case added/updated or N/A
+- [ ] Smoke-tested in a browser (open `public/index.html` or `npx wrangler dev`), described in the Summary
 
 ### Version & changelog
 
@@ -35,6 +35,6 @@
 
 ### Documentation
 
-- [ ] `README.md` updated (Features / How it works / Options reference / Privacy as applicable) **— or** N/A
-- [ ] `docs/` screenshots recaptured for any visible UI change **— or** N/A
-- [ ] `CLAUDE.md` updated (script pipeline, hard constraints, or feature spec as applicable) **— or** N/A
+- [ ] `README.md` updated (Features / How it works / Options reference / Privacy as applicable) or N/A
+- [ ] `docs/` screenshots recaptured for any visible UI change or N/A
+- [ ] `CLAUDE.md` updated (script pipeline, hard constraints, or feature spec as applicable) or N/A

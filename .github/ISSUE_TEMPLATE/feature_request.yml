@@ -33,7 +33,7 @@ body:
     attributes:
       label: Scope notes
       description: >
-        Optional — flag anything that affects scope. Note this project is deliberately
+        Optional. Flag anything that affects scope. This project is deliberately
         single-file, zero-dependency, no-network and client-only: the whole app is one
         public/index.html (inline CSS + one vanilla-JS IIFE). Features that need a build
         step, an npm package, a framework, a server, accounts, or network calls are likely
