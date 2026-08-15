@@ -160,7 +160,7 @@
     <summary><span class="chev">▸</span> <span id="opts-summary-text">Splitting &amp; voice options</span></summary>
     <div class="details-body">
       <div class="opts-grid">
-        <div class="field"><label for="lead">Prefix each split with</label><input type="text" id="lead" value="" placeholder="optional — e.g. a tag on every chunk" spellcheck="false"></div>
+        <div class="field"><label for="lead">Prefix each split with</label><input type="text" id="lead" value="" placeholder="optional, e.g. a tag on every chunk" spellcheck="false"></div>
         <div class="field"><label for="sep" id="sep-label">Separator between lines</label><input type="text" id="sep" value=" " spellcheck="false"><div class="hint">A single space by default.</div></div>
         <div class="field"><label for="maxlen">Max chars / chunk</label><input type="number" id="maxlen" value="400" min="20" inputmode="numeric"></div>
         <div class="field" id="f-maxsw"><label for="maxsw">Max voice switches</label><input type="number" id="maxsw" value="" placeholder="no limit" min="0" inputmode="numeric"><div class="hint">A switch = the speaker changing within a chunk. Blank = no limit.</div></div>
@@ -178,7 +178,7 @@
   <div id="out"></div>
 
   <p class="note">
-    <b>Script vs Prose:</b> <b>Script</b> reads one line per speaker (<code>NAME: dialogue</code>); untagged lines become a <b>narrator</b> voice. <b>Prose</b> ignores tags and splits a wall of text on sentence boundaries — handy when there are no speakers.
+    <b>Script vs Prose:</b> Script reads one line per speaker (<code>NAME: dialogue</code>); untagged lines become a narrator voice. Prose ignores tags and splits a wall of text on sentence boundaries, which is what you want when there are no speakers.
     <br><br>
     <b>Voices &amp; switches</b> (script only): a switch is when the speaker changes between two lines inside one chunk. Set a cap in the options, or leave it blank for no limit. The narrator doesn't count unless you enable it.
     <br><br>
@@ -419,8 +419,8 @@
 
   /* ---- mode (script vs prose) + examples ---- */
   var SCRIPT_PH = "One line per speaker, e.g.\n\nALICE: First line of dialogue.\nBOB: A reply.\n\nLines without a NAME: prefix are read as a 'narrator' voice.";
-  var PROSE_PH  = "Paste a wall of text — it's split on sentence boundaries into size-capped chunks. No NAME: tags needed.";
-  var SCRIPT_EXAMPLE = "ALICE: Hey, did you ever finish the quarterly report?\nBOB: Almost — just polishing the summary section now.\nALICE: Great. Send it over when you're done and I'll give it a read before the meeting at the top of the hour.\nBOB: Will do.";
+  var PROSE_PH  = "Paste a wall of text. It's split on sentence boundaries into size-capped chunks, and no NAME: tags are needed.";
+  var SCRIPT_EXAMPLE = "ALICE: Hey, did you ever finish the quarterly report?\nBOB: Almost, just polishing the summary section now.\nALICE: Great. Send it over when you're done and I'll give it a read before the meeting at the top of the hour.\nBOB: Will do.";
   var PROSE_EXAMPLE  = "The workshop starts at 9:30 sharp, so plan to arrive a few minutes early. Please bring a laptop and its charger. Full details are posted at https://example.com/workshop. Note: seating is limited and we can't guarantee a spot for walk-ins, so register in advance if you possibly can.";
 
   function syncMode(){

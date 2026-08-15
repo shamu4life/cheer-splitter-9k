@@ -66,6 +66,6 @@ body:
     id: context
     attributes:
       label: Additional context
-      description: Console errors, the exact input text that misformatted, the options you used (mode, max chars, switch cap), screenshots or screen recordings — anything that helps.
+      description: Console errors, the exact input text that misformatted, the options you used (mode, max chars, switch cap), screenshots or screen recordings, anything that helps.
     validations:
       required: false
