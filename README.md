@@ -13,7 +13,7 @@ predictable pieces.
 
 <p align="center">
   <a href="https://github.com/shamu4life/cheer-splitter-9k/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/shamu4life/cheer-splitter-9k/ci.yml?label=CI" /></a>
-  <a href="docs/CHANGELOG.md"><img alt="Version 1.0.0" src="https://img.shields.io/badge/version-1.0.0-blue" /></a>
+  <a href="docs/CHANGELOG.md"><img alt="Version 1.0.1" src="https://img.shields.io/badge/version-1.0.1-blue" /></a>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg" /></a>
   <img alt="Single file" src="https://img.shields.io/badge/source-one%20HTML%20file-success" />
   <img alt="Zero dependencies" src="https://img.shields.io/badge/dependencies-0-brightgreen" />
